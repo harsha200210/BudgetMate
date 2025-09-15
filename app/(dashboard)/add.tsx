@@ -16,6 +16,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { addTransaction } from '@/service/transactionService';
 import { useRouter } from 'expo-router';
 import Toast from "react-native-toast-message";
+import TypeToggle from '@/components/TypeToggle';
+import CategoryModal from '@/components/CategoryModal';
 
 export interface Category {
   id: string;
@@ -144,90 +146,90 @@ const AddTransactionScreen: React.FC = () => {
     });
   };
 
-  const TypeToggle = () => (
-    <View className="bg-slate-100 p-1 rounded-2xl flex-row">
-      <TouchableOpacity
-        onPress={() => handleTypeChange('expense')}
-        className={`flex-1 py-3 rounded-xl ${
-          transactionType === 'expense' ? 'bg-white shadow-sm' : ''
-        }`}
-      >
-        <Text className={`text-center font-semibold ${
-          transactionType === 'expense' ? 'text-red-600' : 'text-slate-500'
-        }`}>
-          Expense
-        </Text>
-      </TouchableOpacity>
+  // const TypeToggle = () => (
+  //   <View className="bg-slate-100 p-1 rounded-2xl flex-row">
+  //     <TouchableOpacity
+  //       onPress={() => handleTypeChange('expense')}
+  //       className={`flex-1 py-3 rounded-xl ${
+  //         transactionType === 'expense' ? 'bg-white shadow-sm' : ''
+  //       }`}
+  //     >
+  //       <Text className={`text-center font-semibold ${
+  //         transactionType === 'expense' ? 'text-red-600' : 'text-slate-500'
+  //       }`}>
+  //         Expense
+  //       </Text>
+  //     </TouchableOpacity>
       
-      <TouchableOpacity
-        onPress={() => handleTypeChange('income')}
-        className={`flex-1 py-3 rounded-xl ${
-          transactionType === 'income' ? 'bg-white shadow-sm' : ''
-        }`}
-      >
-        <Text className={`text-center font-semibold ${
-          transactionType === 'income' ? 'text-emerald-600' : 'text-slate-500'
-        }`}>
-          Income
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
+  //     <TouchableOpacity
+  //       onPress={() => handleTypeChange('income')}
+  //       className={`flex-1 py-3 rounded-xl ${
+  //         transactionType === 'income' ? 'bg-white shadow-sm' : ''
+  //       }`}
+  //     >
+  //       <Text className={`text-center font-semibold ${
+  //         transactionType === 'income' ? 'text-emerald-600' : 'text-slate-500'
+  //       }`}>
+  //         Income
+  //       </Text>
+  //     </TouchableOpacity>
+  //   </View>
+  // );
 
-  const CategoryModal = () => {
-    const categories = transactionType === 'expense' ? expenseCategories : incomeCategories;
+  // const CategoryModal = () => {
+  //   const categories = transactionType === 'expense' ? expenseCategories : incomeCategories;
     
-    return (
-      <Modal
-        visible={showCategoryModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCategoryModal(false)}
-      >
-        <SafeAreaView className="flex-1 bg-slate-50">
-          <View className="bg-white px-6 py-4 border-b border-slate-200">
-            <View className="flex-row justify-between items-center">
-              <Text className="text-xl font-bold text-slate-900">
-                Select {transactionType === 'expense' ? 'Expense' : 'Income'} Category
-              </Text>
-              <TouchableOpacity
-                onPress={() => setShowCategoryModal(false)}
-                className="w-8 h-8 bg-slate-100 rounded-full items-center justify-center"
-              >
-                <MaterialIcons name="close" size={20} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-          </View>
+  //   return (
+  //     <Modal
+  //       visible={showCategoryModal}
+  //       animationType="slide"
+  //       presentationStyle="pageSheet"
+  //       onRequestClose={() => setShowCategoryModal(false)}
+  //     >
+  //       <SafeAreaView className="flex-1 bg-slate-50">
+  //         <View className="bg-white px-6 py-4 border-b border-slate-200">
+  //           <View className="flex-row justify-between items-center">
+  //             <Text className="text-xl font-bold text-slate-900">
+  //               Select {transactionType === 'expense' ? 'Expense' : 'Income'} Category
+  //             </Text>
+  //             <TouchableOpacity
+  //               onPress={() => setShowCategoryModal(false)}
+  //               className="w-8 h-8 bg-slate-100 rounded-full items-center justify-center"
+  //             >
+  //               <MaterialIcons name="close" size={20} color="#64748B" />
+  //             </TouchableOpacity>
+  //           </View>
+  //         </View>
 
-          <ScrollView className="flex-1 px-6 py-6">
-            <View className="flex-row flex-wrap justify-between">
-              {categories.map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  onPress={() => handleCategorySelect(category)}
-                  className="w-[30%] bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-4 items-center"
-                >
-                  <View
-                    className="w-12 h-12 rounded-2xl items-center justify-center mb-3"
-                    style={{ backgroundColor: category.color + '20' }}
-                  >
-                    <MaterialIcons
-                      name={category.icon as any}
-                      size={24}
-                      color={category.color}
-                    />
-                  </View>
-                  <Text className="text-slate-700 font-medium text-sm text-center">
-                    {category.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
-    );
-  };
+  //         <ScrollView className="flex-1 px-6 py-6">
+  //           <View className="flex-row flex-wrap justify-between">
+  //             {categories.map((category) => (
+  //               <TouchableOpacity
+  //                 key={category.id}
+  //                 onPress={() => handleCategorySelect(category)}
+  //                 className="w-[30%] bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-4 items-center"
+  //               >
+  //                 <View
+  //                   className="w-12 h-12 rounded-2xl items-center justify-center mb-3"
+  //                   style={{ backgroundColor: category.color + '20' }}
+  //                 >
+  //                   <MaterialIcons
+  //                     name={category.icon as any}
+  //                     size={24}
+  //                     color={category.color}
+  //                   />
+  //                 </View>
+  //                 <Text className="text-slate-700 font-medium text-sm text-center">
+  //                   {category.name}
+  //                 </Text>
+  //               </TouchableOpacity>
+  //             ))}
+  //           </View>
+  //         </ScrollView>
+  //       </SafeAreaView>
+  //     </Modal>
+  //   );
+  // };
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
@@ -270,7 +272,10 @@ const AddTransactionScreen: React.FC = () => {
           
           {/* Transaction Type Toggle */}
           <View className="px-6 py-6">
-            <TypeToggle />
+            <TypeToggle
+              transactionType={transactionType}
+              handleTypeChange={handleTypeChange}
+            />
           </View>
 
           {/* Amount Section */}
@@ -468,7 +473,14 @@ const AddTransactionScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <CategoryModal />
+      <CategoryModal
+        showCategoryModal={showCategoryModal}
+        setShowCategoryModal={setShowCategoryModal}
+        transactionType={transactionType}
+        expenseCategories={expenseCategories}
+        incomeCategories={incomeCategories}
+        handleCategorySelect={handleCategorySelect}
+      />
     </SafeAreaView>
   );
 };
