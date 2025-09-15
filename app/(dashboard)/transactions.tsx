@@ -11,12 +11,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { deleteTransaction, getAllTransactions, listenToTransactions } from '@/service/transactionService';
-import { Transaction as Transactions} from './add';
-import { Timestamp } from 'firebase/firestore';
+import { deleteTransaction, listenToTransactions } from '@/service/transactionService';
 import Toast from 'react-native-toast-message';
 import TransactionItem from '@/components/TransactionItem';
 import DateGroupHeader from '@/components/DateGroupHeader';
+import FilterModal from '@/components/FilterModal';
+import TransactionDetailModal from '@/components/TransactionDetailModal';
 
 export interface Transaction {
   id: string;
@@ -32,8 +32,8 @@ export interface Transaction {
 }
 
 type FilterType = 'all' | 'income' | 'expense';
-type SortType = 'date' | 'amount' | 'category';
-type TimePeriod = 'all' | 'today' | 'week' | 'month' | 'year';
+export type SortType = 'date' | 'amount' | 'category';
+export type TimePeriod = 'all' | 'today' | 'week' | 'month' | 'year';
 
 const TransactionsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -201,288 +201,6 @@ const TransactionsScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
-  // const DateGroupHeader = ({ 
-  //   date, 
-  //   totalIncome, 
-  //   totalExpense 
-  // }: { 
-  //   date: string; 
-  //   totalIncome: number; 
-  //   totalExpense: number 
-  // }) => (
-  //   <View className="bg-slate-50 px-6 py-3 border-b border-slate-200">
-  //     <View className="flex-row justify-between items-center">
-  //       <Text className="text-slate-700 font-semibold">
-  //         {formatDate(new Date(date))}
-  //       </Text>
-  //       <View className="flex-row space-x-4">
-  //         {totalIncome > 0 && (
-  //           <Text className="text-emerald-600 font-semibold text-sm">
-  //             +LKR {totalIncome.toFixed(2)}
-  //           </Text>
-  //         )}
-  //         {totalExpense > 0 && (
-  //           <Text className="text-red-600 font-semibold text-sm">
-  //             -LKR {totalExpense.toFixed(2)}
-  //           </Text>
-  //         )}
-  //       </View>
-  //     </View>
-  //   </View>
-  // );
-
-  const FilterModal = () => (
-    <Modal
-      visible={showFilterModal}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={() => setShowFilterModal(false)}
-    >
-      <SafeAreaView className="flex-1 bg-slate-50">
-        <View className="bg-white px-6 py-4 border-b border-slate-200">
-          <View className="flex-row justify-between items-center">
-            <Text className="text-xl font-bold text-slate-900">Filter & Sort</Text>
-            <TouchableOpacity
-              onPress={() => setShowFilterModal(false)}
-              className="w-8 h-8 bg-slate-100 rounded-full items-center justify-center"
-            >
-              <MaterialIcons name="close" size={20} color="#64748B" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View className="flex-1 px-6 py-6">
-          {/* Time Period */}
-          <Text className="text-slate-900 font-bold text-lg mb-4">Time Period</Text>
-          <View className="flex-row flex-wrap mb-8">
-            {[
-              { key: 'all', label: 'All Time' },
-              { key: 'today', label: 'Today' },
-              { key: 'week', label: 'This Week' },
-              { key: 'month', label: 'This Month' },
-              { key: 'year', label: 'This Year' },
-            ].map((period) => (
-              <TouchableOpacity
-                key={period.key}
-                onPress={() => setTimePeriod(period.key as TimePeriod)}
-                className={`px-4 py-2 rounded-full mr-3 mb-3 ${
-                  timePeriod === period.key ? 'bg-emerald-500' : 'bg-slate-100'
-                }`}
-              >
-                <Text className={`font-medium ${
-                  timePeriod === period.key ? 'text-white' : 'text-slate-600'
-                }`}>
-                  {period.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Sort By */}
-          <Text className="text-slate-900 font-bold text-lg mb-4">Sort By</Text>
-          <View className="space-y-3">
-            {[
-              { key: 'date', label: 'Date (Newest First)', icon: 'schedule' },
-              { key: 'amount', label: 'Amount (Highest First)', icon: 'attach-money' },
-              { key: 'category', label: 'Category (A-Z)', icon: 'category' },
-            ].map((sort) => (
-              <TouchableOpacity
-                key={sort.key}
-                onPress={() => setSortType(sort.key as SortType)}
-                className={`flex-row items-center p-4 rounded-2xl ${
-                  sortType === sort.key ? 'bg-emerald-100 border-2 border-emerald-500' : 'bg-white border border-slate-200'
-                }`}
-              >
-                <MaterialIcons
-                  name={sort.icon as any}
-                  size={24}
-                  color={sortType === sort.key ? '#10B981' : '#64748B'}
-                />
-                <Text className={`ml-3 font-medium ${
-                  sortType === sort.key ? 'text-emerald-700' : 'text-slate-700'
-                }`}>
-                  {sort.label}
-                </Text>
-                {sortType === sort.key && (
-                  <View className="ml-auto">
-                    <MaterialIcons name="check-circle" size={20} color="#10B981" />
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      </SafeAreaView>
-    </Modal>
-  );
-
-  const TransactionDetailModal = () => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [editForm, setEditForm] = useState<Transaction | null>(null);
-
-    const handleSave = async () => {
-      if (!editForm) return;
-      // Update Firestore document:
-      
-      setIsEditing(false);
-      setShowTransactionModal(false);
-    };
-
-     if (!selectedTransaction) return null; // ✅ avoid undefined crash
-
-  return (
-    <Modal
-      visible={showTransactionModal}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={() => setShowTransactionModal(false)}
-    >
-      <SafeAreaView className="flex-1 bg-slate-50">
-        {/* Header */}
-        <View className="bg-white px-6 py-4 border-b border-slate-200">
-          <View className="flex-row justify-between items-center">
-            <TouchableOpacity
-              onPress={() => setShowTransactionModal(false)}
-              className="w-8 h-8 bg-slate-100 rounded-full items-center justify-center"
-            >
-              <MaterialIcons name="close" size={20} color="#64748B" />
-            </TouchableOpacity>
-
-            <Text className="text-xl font-bold text-slate-900">
-              {isEditing ? 'Edit Transaction' : 'Transaction Details'}
-            </Text>
-
-            {isEditing ? (
-              <TouchableOpacity
-                onPress={handleSave}
-                className="px-4 py-2 bg-emerald-500 rounded-xl"
-              >
-                <Text className="text-white font-semibold">Save</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                onPress={() => handleDeleteTransaction(selectedTransaction.id)}
-                className="w-8 h-8 bg-red-100 rounded-full items-center justify-center"
-              >
-                <MaterialIcons name="delete" size={20} color="#EF4444" />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
-        {/* Body */}
-        <View className="flex-1 px-6 py-6">
-          {!isEditing ? (
-            <>
-              {/* Transaction display */}
-              <View className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6 items-center">
-                <View
-                  className="w-16 h-16 rounded-3xl items-center justify-center mb-4"
-                  style={{
-                    backgroundColor:
-                      selectedTransaction.category?.color + '20' || '#00000020',
-                  }}
-                >
-                  <MaterialIcons
-                    name={
-                      (selectedTransaction.category?.icon as keyof typeof MaterialIcons.glyphMap) ||
-                      'help-outline'
-                    }
-                    size={32}
-                    color={selectedTransaction.category?.color || '#000000'}
-                  />
-                </View>
-                <Text className="text-slate-600 text-base mb-2">
-                  {selectedTransaction.type === 'income' ? 'Income' : 'Expense'}
-                </Text>
-                <Text
-                  className={`text-4xl font-bold mb-2 ${
-                    selectedTransaction.type === 'income'
-                      ? 'text-emerald-600'
-                      : 'text-red-600'
-                  }`}
-                >
-                  {selectedTransaction.type === 'income' ? '+' : '-'}LKR{' '}
-                  {selectedTransaction.amount.toFixed(2)}
-                </Text>
-                <Text className="text-slate-500 text-base">
-                  {selectedTransaction.category?.name ?? 'No category'}
-                </Text>
-              </View>
-
-              {/* Description */}
-              <View className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                <Text className="text-slate-500 text-sm mb-1">Description</Text>
-                <Text className="text-slate-900 font-medium text-base">
-                  {selectedTransaction.description || 'No description'}
-                </Text>
-              </View>
-
-              {/* Date */}
-              <View className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mt-4">
-                <Text className="text-slate-500 text-sm mb-1">Date & Time</Text>
-                <Text className="text-slate-900 font-medium text-base">
-                  {selectedTransaction.date instanceof Date
-                    ? selectedTransaction.date.toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })
-                    : ''}
-                </Text>
-                <Text className="text-slate-600 text-sm">
-                  {selectedTransaction.date instanceof Date
-                    ? selectedTransaction.date.toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : ''}
-                </Text>
-              </View>
-
-              {/* Action button */}
-              <View className="flex-row space-x-4 mt-8">
-                <TouchableOpacity
-                  onPress={() => setIsEditing(true)}
-                  className="flex-1 bg-emerald-500 py-4 rounded-2xl"
-                >
-                  <Text className="text-white font-bold text-center">
-                    Edit Transaction
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : (
-            <>
-              {/* Editable form */}
-              <TextInput
-                value={editForm?.description}
-                onChangeText={(text) =>
-                  setEditForm((prev) => prev && { ...prev, description: text })
-                }
-                className="bg-white p-4 rounded-2xl mb-4"
-                placeholder="Description"
-              />
-              <TextInput
-                value={String(editForm?.amount)}
-                onChangeText={(text) =>
-                  setEditForm((prev) =>
-                    prev && { ...prev, amount: parseFloat(text) || 0 },
-                  )
-                }
-                keyboardType="numeric"
-                className="bg-white p-4 rounded-2xl mb-4"
-                placeholder="Amount"
-              />
-            </>
-          )}
-        </View>
-      </SafeAreaView>
-    </Modal>
-  );
-};
-
   const renderItem = ({ item }: { item: { date: string; transactions: Transaction[]; totalIncome: number; totalExpense: number } }) => (
     <View>
       <DateGroupHeader
@@ -492,6 +210,7 @@ const TransactionsScreen: React.FC = () => {
           />
       {item.transactions.map((transaction) => (
         <TransactionItem
+            key={transaction.id}
             item={transaction}
             setSelectedTransaction={setSelectedTransaction}
             setShowTransactionModal={setShowTransactionModal}
@@ -600,8 +319,20 @@ const TransactionsScreen: React.FC = () => {
         }
       />
 
-      <FilterModal />
-      <TransactionDetailModal />
+      <FilterModal
+        showFilterModal={showFilterModal}
+        setShowFilterModal={setShowFilterModal}
+        timePeriod={timePeriod}
+        setTimePeriod={setTimePeriod}
+        sortType={sortType}
+        setSortType={setSortType}
+      />
+      <TransactionDetailModal
+        selectedTransaction={selectedTransaction}
+        showTransactionModal={showTransactionModal}
+        setShowTransactionModal={setShowTransactionModal}
+        handleDeleteTransaction={handleDeleteTransaction}
+      />
     </SafeAreaView>
   );
 };

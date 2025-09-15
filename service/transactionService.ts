@@ -1,7 +1,7 @@
 // services/financeService.ts
 import { Category, Transaction } from "@/app/(dashboard)/add";
 import { db, auth } from "@/firebase";
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, orderBy, query, serverTimestamp, Timestamp, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, orderBy, query, serverTimestamp, Timestamp, updateDoc, where } from "firebase/firestore";
 
 export const addTransaction = async (type: "expense" | "income", amount: number, category: Category, note?: string) => {
   if (!auth.currentUser) throw new Error("User not logged in");
@@ -97,4 +97,20 @@ export const deleteTransaction = async (transactionId: string) => {
 
   await deleteDoc(transactionRef);
   return true;
+};
+
+export const updateTransaction = async (
+  transactionId: string,
+  updatedData: {
+    amount?: number;
+    description?: string;
+  }
+) => {
+  try {
+    const transactionRef = doc(db, 'transactions', transactionId);
+    await updateDoc(transactionRef, updatedData);
+    console.log('Transaction updated successfully');
+  } catch (error) {
+    console.error('Error updating transaction: ', error);
+  }
 };
