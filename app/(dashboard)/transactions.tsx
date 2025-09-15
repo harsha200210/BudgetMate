@@ -15,8 +15,10 @@ import { deleteTransaction, getAllTransactions, listenToTransactions } from '@/s
 import { Transaction as Transactions} from './add';
 import { Timestamp } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
+import TransactionItem from '@/components/TransactionItem';
+import DateGroupHeader from '@/components/DateGroupHeader';
 
-interface Transaction {
+export interface Transaction {
   id: string;
   type: 'income' | 'expense';
   amount: number;
@@ -41,34 +43,9 @@ const TransactionsScreen: React.FC = () => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
-  
-
- 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
-    // const fetchTransactions = async () => {
-    //   try {
-    //     const txs: Transactions[] = await getAllTransactions();
-    //     const formatted: Transaction[] = txs.map(tx => ({
-    //       id: tx.id || '',
-    //       type: tx.type,
-    //       amount: parseFloat(tx.amount),
-    //       category: tx.category ? {
-    //         name: tx.category.name || "",
-    //         icon: tx.category.icon || "",
-    //         color: tx.category.color || "",
-    //       } : null,
-    //       description: tx.description || "",
-    //       date: tx.date instanceof Timestamp ? tx.date.toDate() : new Date(tx.date),
-    //     }));
-
-    //     setTransactions(formatted);
-        
-    //   } catch (error) {
-    //     console.error("Failed to fetch transactions:", error);
-    //   }
-    // };
     const unsubscribe = listenToTransactions(setTransactions);
     return () => unsubscribe && unsubscribe();
   }, []);
@@ -224,84 +201,35 @@ const TransactionsScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
-  const TransactionItem = ({ item }: { item: Transaction }) => (
-    <TouchableOpacity
-      onPress={() => {
-        setSelectedTransaction(item);
-        setShowTransactionModal(true);
-      }}
-      className="bg-white mx-6 p-4 rounded-2xl shadow-sm border border-slate-100 mb-3"
-    >
-      <View className="flex-row items-center">
-        <View
-          className="w-12 h-12 rounded-2xl items-center justify-center mr-4"
-          style={{ backgroundColor: item.category ? item.category.color + '20' : '#00000020' }}
-        >
-          <MaterialIcons
-            name={(item.category?.icon as keyof typeof MaterialIcons.glyphMap) || 'help-outline'} as any
-            size={24}
-            color={item.category ? item.category.color : '#000000'}
-          />
-        </View>
-
-        <View className="flex-1">
-          <View className="flex-row justify-between items-center mb-1">
-            <Text className="text-slate-900 font-semibold text-base">
-              {item.category ? item.category.name : 'Unknown'}
-            </Text>
-            <Text className={`font-bold text-lg ${
-              item.type === 'income' ? 'text-emerald-600' : 'text-red-600'
-            }`}>
-              {item.type === 'income' ? '+' : '-'}LKR {item.amount.toFixed(2)}
-            </Text>
-          </View>
-          
-          <Text className="text-slate-500 text-sm mb-1" numberOfLines={1}>
-            {item.description}
-          </Text>
-          
-          <View className="flex-row justify-between items-center">
-            <Text className="text-slate-400 text-xs">
-              {item.date.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              })}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const DateGroupHeader = ({ 
-    date, 
-    totalIncome, 
-    totalExpense 
-  }: { 
-    date: string; 
-    totalIncome: number; 
-    totalExpense: number 
-  }) => (
-    <View className="bg-slate-50 px-6 py-3 border-b border-slate-200">
-      <View className="flex-row justify-between items-center">
-        <Text className="text-slate-700 font-semibold">
-          {formatDate(new Date(date))}
-        </Text>
-        <View className="flex-row space-x-4">
-          {totalIncome > 0 && (
-            <Text className="text-emerald-600 font-semibold text-sm">
-              +LKR {totalIncome.toFixed(2)}
-            </Text>
-          )}
-          {totalExpense > 0 && (
-            <Text className="text-red-600 font-semibold text-sm">
-              -LKR {totalExpense.toFixed(2)}
-            </Text>
-          )}
-        </View>
-      </View>
-    </View>
-  );
+  // const DateGroupHeader = ({ 
+  //   date, 
+  //   totalIncome, 
+  //   totalExpense 
+  // }: { 
+  //   date: string; 
+  //   totalIncome: number; 
+  //   totalExpense: number 
+  // }) => (
+  //   <View className="bg-slate-50 px-6 py-3 border-b border-slate-200">
+  //     <View className="flex-row justify-between items-center">
+  //       <Text className="text-slate-700 font-semibold">
+  //         {formatDate(new Date(date))}
+  //       </Text>
+  //       <View className="flex-row space-x-4">
+  //         {totalIncome > 0 && (
+  //           <Text className="text-emerald-600 font-semibold text-sm">
+  //             +LKR {totalIncome.toFixed(2)}
+  //           </Text>
+  //         )}
+  //         {totalExpense > 0 && (
+  //           <Text className="text-red-600 font-semibold text-sm">
+  //             -LKR {totalExpense.toFixed(2)}
+  //           </Text>
+  //         )}
+  //       </View>
+  //     </View>
+  //   </View>
+  // );
 
   const FilterModal = () => (
     <Modal
@@ -557,13 +485,17 @@ const TransactionsScreen: React.FC = () => {
 
   const renderItem = ({ item }: { item: { date: string; transactions: Transaction[]; totalIncome: number; totalExpense: number } }) => (
     <View>
-      <DateGroupHeader 
-        date={item.date} 
-        totalIncome={item.totalIncome} 
-        totalExpense={item.totalExpense} 
-      />
+      <DateGroupHeader
+          date={item.date}
+          totalIncome={item.totalIncome}
+          totalExpense={item.totalExpense}
+          />
       {item.transactions.map((transaction) => (
-        <TransactionItem key={transaction.id} item={transaction} />
+        <TransactionItem
+            item={transaction}
+            setSelectedTransaction={setSelectedTransaction}
+            setShowTransactionModal={setShowTransactionModal}
+          />
       ))}
     </View>
   );
